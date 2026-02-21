@@ -300,3 +300,5 @@ async def fallback(msg: types.Message):
     if not _is_allowed(msg):
         return
     await msg.answer("Напиши команду, например: /start или /watch <name>")
+
+

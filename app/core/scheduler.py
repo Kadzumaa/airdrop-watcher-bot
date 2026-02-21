@@ -1,6 +1,7 @@
 import json, os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import select
+import logging
 
 from app.core.config import CHECK_INTERVAL_MINUTES, ENABLE_DEFILLAMA, ENABLE_COINGECKO, ENABLE_DROPSEARN, ENABLE_DOCS_MONITOR
 from app.core.dedup import make_dedup_key
@@ -34,7 +35,7 @@ async def poll_and_notify(bot):
     # DropsEarn discovery
     if ENABLE_DROPSEARN:
         try:
-            tasks = await fetch_dropsearn_tasks(limit=25)
+            tasks = await fetch_dropsearn_tasks(limit=25) or []
             async with SessionLocal() as s:
                 for t in tasks:
                     name = t["project"]
@@ -87,7 +88,7 @@ async def poll_and_notify(bot):
                         )
                         await _send(bot, admin_chat_id, text)
         except Exception:
-            pass
+            logging.exception("DropsEarn poll failed")
 
     # Load projects
     async with SessionLocal() as s:
@@ -136,7 +137,7 @@ async def poll_and_notify(bot):
                                 )
                                 await _send(bot, admin_chat_id, text)
             except Exception:
-                pass
+                logging.exception("DropsEarn poll failed")
 
         if ENABLE_COINGECKO and links.get("coingecko_id"):
             try:
@@ -180,7 +181,7 @@ async def poll_and_notify(bot):
     # DefiLlama funding
     if ENABLE_DEFILLAMA:
         try:
-            raises = await fetch_defillama_raises(limit=30)
+            raises = await fetch_defillama_raises(limit=30) or []
         except Exception:
             raises = []
 
