@@ -22,9 +22,10 @@ async def main():
     dp = Dispatcher()
     dp.include_router(router)
 
-    await start_scheduler(bot)
+    from app.data.db import init_db
+    await init_db()
 
-    logging.info("Бот запущен и работает (polling).")
+    await start_scheduler(bot)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

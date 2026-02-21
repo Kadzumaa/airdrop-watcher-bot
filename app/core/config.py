@@ -1,18 +1,22 @@
 import os
 
-def env_bool(name: str, default: bool=False) -> bool:
-    v = os.getenv(name)
-    if v is None:
-        return default
-    return v.strip().lower() in {"1","true","yes","y","on"}
+def _env(key: str, default: str = "") -> str:
+    return (os.getenv(key, default) or "").strip()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
-DB_URL = os.getenv("DB_URL", "")
-ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID", "").strip()
-CHECK_INTERVAL_MINUTES = int(os.getenv("CHECK_INTERVAL_MINUTES", "60"))
+BOT_TOKEN = _env("BOT_TOKEN")
+ADMIN_CHAT_ID = _env("ADMIN_CHAT_ID")
 
-ENABLE_DEFILLAMA = env_bool("ENABLE_DEFILLAMA", True)
-ENABLE_COINGECKO = env_bool("ENABLE_COINGECKO", True)
-ENABLE_DROPSEARN = env_bool("ENABLE_DROPSEARN", True)
-ENABLE_GITHUB = env_bool("ENABLE_GITHUB", True)
-ENABLE_DOCS_MONITOR = env_bool("ENABLE_DOCS_MONITOR", True)
+CHECK_INTERVAL_MINUTES = int(_env("CHECK_INTERVAL_MINUTES", "5") or 5)
+
+# Фичи источников (можно включать/выключать в Bothost env)
+ENABLE_DROPSEARN = _env("ENABLE_DROPSEARN", "1") == "1"
+ENABLE_DEFILLAMA = _env("ENABLE_DEFILLAMA", "1") == "1"
+ENABLE_COINGECKO = _env("ENABLE_COINGECKO", "1") == "1"
+ENABLE_DOCS_MONITOR = _env("ENABLE_DOCS_MONITOR", "1") == "1"
+
+# ✅ Главное: БД
+# Если DATABASE_URL не задан — используем SQLite файл на диске
+DATABASE_URL = _env("DATABASE_URL")
+if not DATABASE_URL:
+    # Bothost Dockerfile создаёт /app/data, туда и кладём базу
+    DATABASE_URL = "sqlite+aiosqlite:////app/data/bot.db"
